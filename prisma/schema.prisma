@@ -1,0 +1,57 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id          String   @id @default(cuid())
+  trackingId  String   @unique
+  clerkUserId String   @unique
+  name        String
+  email       String   @unique
+  role        Role
+  classId     String?
+  class       Class?   @relation(fields: [classId], references: [id])
+  parentPhone String?  // Only for students
+  payments    Payment[]
+  createdAt   DateTime @default(now())
+}
+
+model Class {
+  id         String   @id @default(cuid())
+  trackingId String   @unique
+  name       String   @unique
+  teacherId  String?
+  teacher    User?    @relation("ClassTeacher", fields: [teacherId], references: [id])
+  students   User[]   @relation("StudentClass")
+  createdAt  DateTime @default(now())
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  trackingId String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  amount     Float
+  status     PaymentStatus @default(PENDING)
+  reference  String   @unique
+  createdAt  DateTime @default(now())
+}
