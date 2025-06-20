@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-type ModalType = "student" | "teacher" | "class" | null;
+type ModalType = "student" | "teacher" | "class" | "createUser" | null;
 
 interface ModalStore {
   openModal: ModalType;

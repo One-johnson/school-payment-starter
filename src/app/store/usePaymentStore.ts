@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Payment } from "@/app/types/entities";
-import api from "@/app/lib/axios";
+import api from "@/hooks/axios";
 
 interface PaymentStore {
   payments: Payment[];

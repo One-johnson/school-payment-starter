@@ -22,36 +22,39 @@ enum PaymentStatus {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  trackingId  String   @unique
-  clerkUserId String   @unique
+  id          String    @id @default(cuid())
+  trackingId  String    @unique
+  clerkUserId String    @unique
   name        String
-  email       String   @unique
+  email       String    @unique
   role        Role
   classId     String?
-  class       Class?   @relation(fields: [classId], references: [id])
-  parentPhone String?  // Only for students
+  class       Class?    @relation(fields: [classId], references: [id]) // direct FK
+  teaches     Class[]   @relation("ClassTeacher") // 1:N backrelation for teacher
+  enrolledIn  Class[]   @relation("StudentClass") // M:N backrelation for students
+  parentPhone String?
   payments    Payment[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 }
 
 model Class {
-  id         String   @id @default(cuid())
+  id         String   @id
   trackingId String   @unique
   name       String   @unique
   teacherId  String?
   teacher    User?    @relation("ClassTeacher", fields: [teacherId], references: [id])
   students   User[]   @relation("StudentClass")
   createdAt  DateTime @default(now())
+  User       User[]
 }
 
 model Payment {
-  id         String   @id @default(cuid())
-  trackingId String   @unique
+  id         String        @id
+  trackingId String        @unique
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User          @relation(fields: [userId], references: [id])
   amount     Float
   status     PaymentStatus @default(PENDING)
-  reference  String   @unique
-  createdAt  DateTime @default(now())
+  reference  String        @unique
+  createdAt  DateTime      @default(now())
 }
