@@ -3,6 +3,16 @@ import { persist } from "zustand/middleware";
 import { Teacher } from "@/app/types/entities";
 import api from "@/hooks/axios";
 
+type TeacherPayload = {
+  name: string;
+  email: string;
+  clerkUserId: string;
+  classId?: string;
+  bio?: string;
+  certification?: string;
+  yearsOfExperience?: number;
+};
+
 interface TeacherStore {
   teachers: Teacher[];
   selectedTeacher?: Teacher;
@@ -10,8 +20,8 @@ interface TeacherStore {
   error: string | null;
   fetchTeachers: () => Promise<void>;
   getTeacherById: (id: string) => Promise<void>;
-  createTeacher: (data: Partial<Teacher>) => Promise<void>;
-  updateTeacher: (id: string, data: Partial<Teacher>) => Promise<void>;
+  createTeacher: (data: TeacherPayload) => Promise<void>;
+  updateTeacher: (id: string, data: Partial<TeacherPayload>) => Promise<void>;
   deleteTeacher: (id: string) => Promise<void>;
 }
 
@@ -70,7 +80,16 @@ export const useTeacherStore = create(
           const res = await api.put("/teachers", { id, ...data });
           set((state) => ({
             teachers: state.teachers.map((t) =>
-              t.id === id ? { ...t, ...res.data } : t
+              t.id === id
+                ? {
+                    ...t,
+                    ...res.data,
+                    teacher: {
+                      ...t.teacher,
+                      ...res.data.teacher,
+                    },
+                  }
+                : t
             ),
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -96,6 +115,8 @@ export const useTeacherStore = create(
         }
       },
     }),
-    { name: "teacher-store" }
+    {
+      name: "teacher-store",
+    }
   )
 );

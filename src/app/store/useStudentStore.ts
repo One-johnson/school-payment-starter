@@ -1,7 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Student } from "@/app/types/entities";
+import { Student, StudentEntity } from "@/app/types/entities";
 import api from "@/hooks/axios";
+
+type StudentPayload = {
+  name: string;
+  email: string;
+  clerkUserId: string;
+  student: Omit<StudentEntity, "class">; // class is usually resolved via population
+};
 
 interface StudentStore {
   students: Student[];
@@ -10,8 +17,8 @@ interface StudentStore {
   error: string | null;
   fetchStudents: () => Promise<void>;
   getStudentById: (id: string) => Promise<void>;
-  createStudent: (data: Partial<Student>) => Promise<void>;
-  updateStudent: (id: string, data: Partial<Student>) => Promise<void>;
+  createStudent: (data: StudentPayload) => Promise<void>;
+  updateStudent: (id: string, data: Partial<StudentPayload>) => Promise<void>;
   deleteStudent: (id: string) => Promise<void>;
 }
 
@@ -70,7 +77,16 @@ export const useStudentStore = create(
           const res = await api.put("/students", { id, ...data });
           set((state) => ({
             students: state.students.map((s) =>
-              s.id === id ? { ...s, ...res.data } : s
+              s.id === id
+                ? {
+                    ...s,
+                    ...res.data,
+                    student: {
+                      ...s.student,
+                      ...res.data.student,
+                    },
+                  }
+                : s
             ),
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

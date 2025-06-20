@@ -1,7 +1,7 @@
-// types/entities.ts
-
+// roles
 export type Role = "ADMIN" | "TEACHER" | "STUDENT";
 
+// base user model
 export interface BaseUser {
   id: string;
   name: string;
@@ -13,23 +13,39 @@ export interface BaseUser {
   updatedAt: string;
 }
 
-// ✅ STUDENT
-export interface Student extends BaseUser {
-  role: "STUDENT";
+// student metadata
+export interface StudentEntity {
   parentPhone?: string;
+  guardianName?: string;
+  healthNotes?: string;
+  isRepeating: boolean;
   classId?: string;
   class?: ClassEntity;
+  enrolledIn?: ClassEntity[];
+}
+
+// full student = user + student info
+export interface Student extends BaseUser {
+  role: "STUDENT";
+  student: StudentEntity;
   payments?: Payment[];
 }
 
-// ✅ TEACHER
-export interface Teacher extends BaseUser {
-  role: "TEACHER";
-  classId?: string;
-  class?: ClassEntity;
+// teacher metadata
+export interface TeacherEntity {
+  bio?: string;
+  certification?: string;
+  yearsOfExperience?: number;
+  teaches?: ClassEntity[];
 }
 
-// ✅ CLASS
+// full teacher = user + teacher info
+export interface Teacher extends BaseUser {
+  role: "TEACHER";
+  teacher: TeacherEntity;
+}
+
+// class
 export interface ClassEntity {
   id: string;
   name: string;
@@ -41,7 +57,7 @@ export interface ClassEntity {
   updatedAt: string;
 }
 
-// ✅ PAYMENT
+// payments
 export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED";
 
 export interface Payment {
@@ -51,7 +67,7 @@ export interface Payment {
   status: PaymentStatus;
   reference: string;
   trackingId: string;
-  user?: Student;
+  user?: BaseUser; // or you can use `Student` if only students can pay
   createdAt: string;
   updatedAt: string;
 }
