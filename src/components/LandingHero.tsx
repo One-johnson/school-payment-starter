@@ -1,5 +1,5 @@
 "use client";
-import { useUser } from "@clerk/nextjs"; 
+import { useUser } from "@clerk/nextjs";
 import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
 import {
@@ -9,15 +9,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "./ui/button";
 
 export default function LandingHero() {
   const { user } = useUser();
 
   let dashboardPath = "/dashboard";
   const role = user?.publicMetadata?.role;
-  if (role === "ADMIN") dashboardPath = "/pages/dashboard/admin";
-  if (role === "TEACHER") dashboardPath = "/pages/dashboard/teacher";
-  if (role === "STUDENT") dashboardPath = "/pages/dashboard/student";
+  if (role === "ADMIN") dashboardPath = "/pages/dashboards/admin-dashboard";
+  if (role === "TEACHER") dashboardPath = "/pages/dashboards/teacher-dashboard";
+  if (role === "STUDENT") dashboardPath = "/pages/dashboards/student-dashboard";
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-6 py-16 bg-white dark:bg-black">
@@ -35,9 +36,7 @@ export default function LandingHero() {
 
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg text-sm sm:text-base transition">
-                Log In
-              </button>
+              <Button variant={"default"}>Log In</Button>
             </SignInButton>
           </SignedOut>
 
