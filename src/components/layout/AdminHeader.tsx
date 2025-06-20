@@ -19,22 +19,22 @@ export default function AdminHeader() {
 
   const navItems = [
     {
-      path: "/pages/dashboard/admin",
+      path: "/pages/dashboards/admin-dashboard",
       label: "Dashboard",
       icon: <LayoutDashboard size={16} className="mr-2" />,
     },
     {
-      path: "/pages/dashboard/classes",
+      path: "/pages/classes",
       label: "Classes",
       icon: <GraduationCap size={16} className="mr-2" />,
     },
     {
-      path: "/pages/dashboard/students",
+      path: "/pages/students",
       label: "Students",
       icon: <Users size={16} className="mr-2" />,
     },
     {
-      path: "/pages/dashboard/teachers",
+      path: "/pages/teachers",
       label: "Teachers",
       icon: <Users size={16} className="mr-2" />,
     },

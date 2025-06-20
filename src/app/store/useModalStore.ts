@@ -1,17 +1,22 @@
 // store/useModalStore.ts
 
 import { create } from "zustand";
+import { ClassEntity } from "@/app/types/entities"; // Update path if needed
 
-type ModalType = "student" | "teacher" | "class" | "createUser" | null;
+type ModalType =
+  | { type: "createUser" }
+  | { type: "createClass" }
+  | { type: "editClass"; data: ClassEntity }
+  | null;
 
 interface ModalStore {
   openModal: ModalType;
-  open: (type: ModalType) => void;
+  open: (modal: ModalType) => void;
   close: () => void;
 }
 
 export const useModalStore = create<ModalStore>((set) => ({
   openModal: null,
-  open: (type) => set({ openModal: type }),
+  open: (modal) => set({ openModal: modal }),
   close: () => set({ openModal: null }),
 }));

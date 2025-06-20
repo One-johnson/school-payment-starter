@@ -38,14 +38,21 @@ export async function POST(req: NextRequest) {
   const { name, teacherId } = body;
 
   const trackingId = generateIds(name);
+  const id = generateIds(name + "-id"); // Generate a unique id for the class
 
   const klass = await prisma.class.create({
     data: {
+      id,
       name,
-      teacherId,
       trackingId,
+      ...(teacherId && {
+        teacher: {
+          connect: { id: teacherId },
+        },
+      }),
     },
   });
+  
 
   return NextResponse.json(klass);
 }
