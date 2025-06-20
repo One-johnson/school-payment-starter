@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -22,34 +20,65 @@ enum PaymentStatus {
 }
 
 model User {
-  id          String    @id @default(cuid())
-  trackingId  String    @unique
-  clerkUserId String    @unique
+  id          String   @id @default(cuid())
+  trackingId  String   @unique
+  clerkUserId String   @unique
   name        String
-  email       String    @unique
+  email       String   @unique
   role        Role
-  classId     String?
-  class       Class?    @relation(fields: [classId], references: [id]) // direct FK
-  teaches     Class[]   @relation("ClassTeacher") // 1:N backrelation for teacher
-  enrolledIn  Class[]   @relation("StudentClass") // M:N backrelation for students
-  parentPhone String?
-  payments    Payment[]
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  student  Student?
+  teacher  Teacher?
+  payments Payment[]
+}
+
+model Student {
+  id           String  @id
+  user         User    @relation(fields: [id], references: [id])
+  parentPhone  String?
+  guardianName String?
+  healthNotes  String?
+  isRepeating  Boolean @default(false)
+
+  // 🔧 One-to-many relation (e.g. primary class)
+  classId String?
+  class   Class?  @relation("PrimaryClass", fields: [classId], references: [id])
+
+  // 🔧 Many-to-many enrollment
+  enrolledIn Class[] @relation("StudentClass")
+}
+
+model Teacher {
+  id                String  @id // Matches User.id
+  user              User    @relation(fields: [id], references: [id])
+  bio               String?
+  certification     String?
+  yearsOfExperience Int?
+
+  // Class Relations
+  teaches Class[] @relation("ClassTeacher")
 }
 
 model Class {
-  id         String   @id
+  id         String   @id @default(cuid())
   trackingId String   @unique
   name       String   @unique
-  teacherId  String?
-  teacher    User?    @relation("ClassTeacher", fields: [teacherId], references: [id])
-  students   User[]   @relation("StudentClass")
   createdAt  DateTime @default(now())
-  User       User[]
+
+  // 🔧 Match the one-to-many
+  studentsSingle Student[] @relation("PrimaryClass")
+
+  // 🔧 Match the many-to-many
+  students Student[] @relation("StudentClass")
+
+  teacherId String?
+  teacher   Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
 }
 
 model Payment {
-  id         String        @id
+  id         String        @id @default(cuid())
   trackingId String        @unique
   userId     String
   user       User          @relation(fields: [userId], references: [id])
