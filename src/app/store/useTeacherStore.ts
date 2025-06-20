@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Teacher } from "@/app/types/entities";
-import api from "@/app/lib/axios";
+import api from "@/hooks/axios";
 
 interface TeacherStore {
   teachers: Teacher[];

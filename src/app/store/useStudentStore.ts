@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Student } from "@/app/types/entities";
-import api from "@/app/lib/axios";
+import api from "@/hooks/axios";
 
 interface StudentStore {
   students: Student[];
@@ -58,7 +58,6 @@ export const useStudentStore = create(
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-
           set({ error: err.message });
         } finally {
           set({ loading: false });

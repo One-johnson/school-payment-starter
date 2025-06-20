@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@/hooks/prisma";
 import { generateIds } from "@/app/utils/generateIds";
 
 // GET All or by ID
