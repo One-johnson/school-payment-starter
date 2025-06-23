@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/hooks/prisma";
 import { generateIds } from "@/app/utils/generateIds";
 
-// GET All or by ID
+// ─── GET: All classes or one by ID ───────────────────────────
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
@@ -11,34 +11,58 @@ export async function GET(req: NextRequest) {
     const klass = await prisma.class.findUnique({
       where: { id },
       include: {
-        teacher: true,
-        students: true,
+        teacher: {
+          include: {
+            user: true, // optional, if you want teacher name, email, etc.
+          },
+        },
+        students: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
-    if (!klass)
+    if (!klass) {
       return NextResponse.json({ error: "Class not found" }, { status: 404 });
+    }
 
     return NextResponse.json(klass);
   }
 
   const classes = await prisma.class.findMany({
     include: {
-      teacher: true,
-      students: true,
+      teacher: {
+        include: {
+          user: true,
+        },
+      },
+      students: {
+        include: {
+          user: true,
+        },
+      },
     },
   });
 
   return NextResponse.json(classes);
 }
 
-// CREATE
+// ─── POST: Create new class ───────────────────────────────────
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { name, teacherId } = body;
 
-  const trackingId = generateIds(name);
-  const id = generateIds(name + "-id"); // Generate a unique id for the class
+  if (!name) {
+    return NextResponse.json(
+      { error: "Class name is required" },
+      { status: 400 }
+    );
+  }
+
+  const trackingId = generateIds("class");
+  const id = generateIds("class");
 
   const klass = await prisma.class.create({
     data: {
@@ -47,32 +71,52 @@ export async function POST(req: NextRequest) {
       trackingId,
       ...(teacherId && {
         teacher: {
-          connect: { id: teacherId },
+          connect: { userId: teacherId },
         },
       }),
     },
   });
-  
 
   return NextResponse.json(klass);
 }
 
-// UPDATE
+// ─── PUT: Update class ─────────────────────────────────────────
 export async function PUT(req: NextRequest) {
   const body = await req.json();
-  const { id, ...data } = body;
+  const { id, name, teacherId } = body;
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "Class ID is required" },
+      { status: 400 }
+    );
+  }
 
   const updated = await prisma.class.update({
     where: { id },
-    data,
+    data: {
+      name,
+      ...(teacherId && {
+        teacher: {
+          connect: { userId: teacherId },
+        },
+      }),
+    },
   });
 
   return NextResponse.json(updated);
 }
 
-// DELETE
+// ─── DELETE: Delete class ─────────────────────────────────────
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "Class ID is required" },
+      { status: 400 }
+    );
+  }
 
   await prisma.class.delete({
     where: { id },

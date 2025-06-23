@@ -1,7 +1,8 @@
-// roles
+// ─── ROLES ─────────────────────────────────────────────
 export type Role = "ADMIN" | "TEACHER" | "STUDENT";
+export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED";
 
-// base user model
+// ─── BASE USER ─────────────────────────────────────────
 export interface BaseUser {
   id: string;
   name: string;
@@ -10,64 +11,81 @@ export interface BaseUser {
   trackingId: string;
   clerkUserId?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
-// student metadata
+// ─── STUDENT ───────────────────────────────────────────
 export interface StudentEntity {
   parentPhone?: string;
   guardianName?: string;
   healthNotes?: string;
   isRepeating: boolean;
-  classId?: string;
+  classId: string;
   class?: ClassEntity;
-  enrolledIn?: ClassEntity[];
 }
 
-// full student = user + student info
 export interface Student extends BaseUser {
   role: "STUDENT";
   student: StudentEntity;
   payments?: Payment[];
 }
 
-// teacher metadata
+// ─── TEACHER ───────────────────────────────────────────
 export interface TeacherEntity {
   bio?: string;
   certification?: string;
   yearsOfExperience?: number;
-  teaches?: ClassEntity[];
+  classId?: string; // ← add this
+  class?: ClassEntity;
 }
 
-// full teacher = user + teacher info
 export interface Teacher extends BaseUser {
   role: "TEACHER";
   teacher: TeacherEntity;
 }
 
-// class
+// ─── CLASS ─────────────────────────────────────────────
 export interface ClassEntity {
-  id: string;
+  id: string; // custom ID like CLS_XXXX
   name: string;
   trackingId: string;
   teacherId?: string;
   teacher?: Teacher;
   students?: Student[];
   createdAt: string;
-  updatedAt: string;
 }
 
-// payments
-export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED";
+// ─── TERM ──────────────────────────────────────────────
+export interface Term {
+  id: string; // custom ID like TERM_XXXX
+  name: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  academicYear: string;
+  payments?: Payment[];
+  updatedAt: string;
 
+
+}
+
+// ─── PAYMENT ───────────────────────────────────────────
 export interface Payment {
-  id: string;
-  userId: string;
+  id: string; // custom ID like PAY_XXXX
+  trackingId: string;
+  reference: string;
   amount: number;
   status: PaymentStatus;
-  reference: string;
-  trackingId: string;
-  user?: BaseUser; // or you can use `Student` if only students can pay
   createdAt: string;
-  updatedAt: string;
+
+  userId: string;
+  user?: BaseUser;
+
+  studentId?: string;
+  student?: Student;
+
+  classId?: string;
+  class?: ClassEntity;
+
+  termId?: string;
+  term?: Term;
 }

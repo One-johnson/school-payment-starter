@@ -24,7 +24,7 @@ import { Formik, Form } from "formik";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Teacher } from "@/app/types/entities";
-import { teacherSchema } from "@/app/validations/Schemas"; // Define as needed
+import { teacherSchema } from "@/app/validations/Schemas";
 
 export default function TeacherForm() {
   const { openModal, close } = useModalStore();
@@ -53,20 +53,19 @@ export default function TeacherForm() {
 
         <Formik
           initialValues={{
-            name: teacherData?.name || "",
-            email: teacherData?.email || "",
-            bio: teacherData?.teacher?.bio || "",
-            certification: teacherData?.teacher?.certification || "",
+            name: teacherData?.name ?? "",
+            email: teacherData?.email ?? "",
+            bio: teacherData?.teacher?.bio ?? "",
+            certification: teacherData?.teacher?.certification ?? "",
             yearsOfExperience:
-              teacherData?.teacher?.yearsOfExperience?.toString() || "",
-            classId: "", // optional: pick default assigned class
+              teacherData?.teacher?.yearsOfExperience?.toString() ?? "",
+              classId: teacherData?.teacher?.classId ?? "",
           }}
           validationSchema={teacherSchema}
           enableReinitialize
           onSubmit={async (values, { setSubmitting, resetForm }) => {
             try {
-              const clerkUserId = teacherData?.clerkUserId || ""; // Provide a way to get clerkUserId for new teachers
-
+              const clerkUserId = teacherData?.clerkUserId || ""; // Replace with real logic
               const payload = {
                 name: values.name,
                 email: values.email,
@@ -77,9 +76,10 @@ export default function TeacherForm() {
                   yearsOfExperience: values.yearsOfExperience
                     ? Number(values.yearsOfExperience)
                     : undefined,
+                  classId: values.classId || undefined,
                 },
-                classId: values.classId || undefined,
               };
+              
 
               if (isEdit && teacherData) {
                 await updateTeacher(teacherData.id, payload);
@@ -110,94 +110,110 @@ export default function TeacherForm() {
             touched,
             errors,
             handleReset,
+            setFieldValue,
+            setFieldTouched,
           }) => (
             <Form className="space-y-4">
-              <div>
-                <Label>Name</Label>
-                <Input
-                  name="name"
-                  value={values.name}
-                  onChange={handleChange}
-                />
-                {touched.name && errors.name && (
-                  <p className="text-sm text-red-500">{errors.name}</p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="mb-2">Name</Label>
+                  <Input
+                    name="name"
+                    value={values.name}
+                    onChange={handleChange}
+                  />
+                  {touched.name && errors.name && (
+                    <p className="text-sm text-red-500">{errors.name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="mb-2">Email</Label>
+                  <Input
+                    name="email"
+                    type="email"
+                    value={values.email}
+                    onChange={handleChange}
+                  />
+                  {touched.email && errors.email && (
+                    <p className="text-sm text-red-500">{errors.email}</p>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <Label>Email</Label>
-                <Input
-                  name="email"
-                  type="email"
-                  value={values.email}
-                  onChange={handleChange}
-                />
-                {touched.email && errors.email && (
-                  <p className="text-sm text-red-500">{errors.email}</p>
-                )}
-              </div>
-              <div>
-                <Label>Bio</Label>
-                <Input
-                  name="bio"
-                  type="text"
-                  value={values.bio}
-                  onChange={handleChange}
-                />
-                {touched.bio && errors.bio && (
-                  <p className="text-sm text-red-500">{errors.bio}</p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="mb-2">Bio</Label>
+                  <Input
+                    name="bio"
+                    type="text"
+                    value={values.bio}
+                    onChange={handleChange}
+                  />
+                  {touched.bio && errors.bio && (
+                    <p className="text-sm text-red-500">{errors.bio}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="mb-2">Certification</Label>
+                  <Input
+                    name="certification"
+                    type="text"
+                    value={values.certification}
+                    onChange={handleChange}
+                  />
+                  {touched.certification && errors.certification && (
+                    <p className="text-sm text-red-500">
+                      {errors.certification}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <Label>Certification</Label>
-                <Input
-                  name="certification"
-                  type="text"
-                  value={values.certification}
-                  onChange={handleChange}
-                />
-                {touched.certification && errors.certification && (
-                  <p className="text-sm text-red-500">{errors.certification}</p>
-                )}
-              </div>
-              <div>
-                <Label>Years of Experience</Label>
-                <Input
-                  name="yearsOfExperience"
-                  type="number"
-                  value={values.yearsOfExperience}
-                  onChange={handleChange}
-                />
-                {touched.yearsOfExperience && errors.yearsOfExperience && (
-                  <p className="text-sm text-red-500">
-                    {errors.yearsOfExperience}
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label>Assign Class</Label>
-                <Select
-                  name="classId"
-                  value={values.classId}
-                  onValueChange={(val) =>
-                    handleChange({ target: { name: "classId", value: val } })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select class" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classes.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="mb-2">Years of Experience</Label>
+                  <Input
+                    name="yearsOfExperience"
+                    type="number"
+                    value={values.yearsOfExperience}
+                    onChange={handleChange}
+                  />
+                  {touched.yearsOfExperience && errors.yearsOfExperience && (
+                    <p className="text-sm text-red-500">
+                      {errors.yearsOfExperience}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="mb-2">Assign Class</Label>
+                  <Select
+                    value={values.classId}
+                    onValueChange={(val) => {
+                      setFieldValue("classId", val);
+                      setFieldTouched("classId", true);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select class" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-900">
+                      {classes.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {touched.classId && errors.classId && (
+                    <p className="text-sm text-red-500">{errors.classId}</p>
+                  )}
+                </div>
               </div>
 
-              <div className="flex justify-end items-center gap-4 pt-2">
+              <div className="flex justify-center items-center gap-4 pt-2">
                 <Button
                   type="reset"
                   variant="outline"
@@ -206,7 +222,7 @@ export default function TeacherForm() {
                 >
                   Reset
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button variant="outline" type="submit" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />

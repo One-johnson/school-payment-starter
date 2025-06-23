@@ -1,7 +1,7 @@
 // store/useModalStore.ts
 
 import { create } from "zustand";
-import { ClassEntity, Teacher, Student } from "@/app/types/entities";
+import { ClassEntity, Teacher, Student, Payment } from "@/app/types/entities";
 
 type ModalType =
   | { type: "createUser" }
@@ -11,6 +11,8 @@ type ModalType =
   | { type: "editTeacher"; teacherData: Teacher }
   | { type: "createStudent" }
   | { type: "editStudent"; data: Student }
+  | { type: "createPayment" }
+  | { type: "editPayment"; data: Payment }
   | null;
 
 interface ModalStore {

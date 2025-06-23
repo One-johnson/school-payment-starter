@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/hooks/prisma";
 import { generateIds } from "@/app/utils/generateIds";
 
-// GET all or by ID
+// ─── GET ────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
@@ -10,47 +10,82 @@ export async function GET(req: NextRequest) {
   if (id) {
     const payment = await prisma.payment.findUnique({
       where: { id },
-      include: { user: true },
+      include: {
+        user: true,
+        student: true,
+        class: true,
+        term: true,
+      },
     });
 
-    if (!payment)
+    if (!payment) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+    }
 
     return NextResponse.json(payment);
   }
 
   const payments = await prisma.payment.findMany({
-    include: { user: true },
+    include: {
+      user: true,
+      student: true,
+      class: true,
+      term: true,
+    },
     orderBy: { createdAt: "desc" },
   });
 
   return NextResponse.json(payments);
 }
 
-// CREATE
+// ─── POST ────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { userId, amount, reference, status = "PENDING" } = body;
+  const {
+    userId,
+    amount,
+    studentId,
+    classId,
+    termId,
+    status = "PENDING",
+  } = body;
 
-  const trackingId = generateIds("PAY");
+  if (!userId || !amount) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
+
+  const id = generateIds("payment");
+  const trackingId = generateIds("payment");
+  const reference = generateIds("ref");
 
   const payment = await prisma.payment.create({
     data: {
+      id,
+      trackingId,
+      reference,
       userId,
       amount,
-      reference,
       status,
-      trackingId,
+      ...(studentId && { studentId }),
+      ...(classId && { classId }),
+      ...(termId && { termId }),
     },
   });
 
   return NextResponse.json(payment);
 }
 
-// UPDATE
+// ─── PUT ────────────────────────────────────────────────
 export async function PUT(req: NextRequest) {
   const body = await req.json();
   const { id, ...data } = body;
+
+  if (!id) {
+    return NextResponse.json({ error: "Missing payment ID" }, { status: 400 });
+  }
 
   const updated = await prisma.payment.update({
     where: { id },
@@ -60,13 +95,15 @@ export async function PUT(req: NextRequest) {
   return NextResponse.json(updated);
 }
 
-// DELETE
+// ─── DELETE ────────────────────────────────────────────────
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
 
-  await prisma.payment.delete({
-    where: { id },
-  });
+  if (!id) {
+    return NextResponse.json({ error: "Missing payment ID" }, { status: 400 });
+  }
+
+  await prisma.payment.delete({ where: { id } });
 
   return NextResponse.json({ message: "Payment deleted" });
 }

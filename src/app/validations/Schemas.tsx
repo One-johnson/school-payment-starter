@@ -15,8 +15,8 @@ export const studentSchema = Yup.object({
     .nullable(),
   guardianName: Yup.string().nullable(),
   healthNotes: Yup.string().nullable(),
-  isRepeating: Yup.boolean(),
-  classId: Yup.string().nullable(),
+  isRepeating: Yup.boolean().default(false),
+  classId: Yup.string().required("Class is required"),
 });
 
 export const teacherSchema = Yup.object({
@@ -29,5 +29,35 @@ export const teacherSchema = Yup.object({
   yearsOfExperience: Yup.number()
     .min(0, "Experience must be a positive number")
     .nullable(),
+});
+
+export const termSchema = Yup.object({
+  name: Yup.string().required("Term name is required"),
+  academicYear: Yup.string()
+    .required("Academic year is required")
+    .matches(
+      /^\d{4}\/\d{4}$/,
+      "Academic year must be in the format YYYY/YYYY (e.g. 2024/2025)"
+    ),
+  startDate: Yup.date()
+    .required("Start date is required")
+    .typeError("Invalid start date"),
+  endDate: Yup.date()
+    .required("End date is required")
+    .typeError("Invalid end date")
+    .min(Yup.ref("startDate"), "End date must be after start date"),
+});
+
+export const paymentSchema = Yup.object({
+  userId: Yup.string().required("User is required"),
+  amount: Yup.number()
+    .required("Amount is required")
+    .min(0.01, "Amount must be greater than zero"),
+  status: Yup.mixed()
+    .oneOf(["PENDING", "SUCCESS", "FAILED"])
+    .default("PENDING"),
+
+  studentId: Yup.string().nullable(),
   classId: Yup.string().nullable(),
+  termId: Yup.string().nullable(),
 });

@@ -69,6 +69,7 @@ export default function ClassTable() {
       setSelectedId(null);
     }
   };
+
   useEffect(() => {
     fetchClasses();
     fetchTeachers();
@@ -154,7 +155,7 @@ export default function ClassTable() {
                         ))}
                     </div>
                   </TableHead>
-                  <TableHead>Tracking ID</TableHead>
+                  <TableHead>Class ID</TableHead>
                   <TableHead>Teacher</TableHead>
                   <TableHead
                     onClick={() => {
@@ -209,12 +210,42 @@ export default function ClassTable() {
                       <TableCell>{klass.trackingId}</TableCell>
                       <TableCell>
                         {klass.teacher ? (
-                          <div className="flex items-center gap-2">
-                            <span>{klass.teacher.name}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {klass.teacher.role}
-                            </Badge>
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2 cursor-pointer underline text-blue-600">
+                                  <span>{klass.teacher.name}</span>
+                                  <Badge variant="outline" className="text-xs">
+                                    {klass.teacher.role}
+                                  </Badge>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-slate-800 text-sm max-w-sm space-y-1">
+                                <div>
+                                  <strong>Name:</strong> {klass.teacher.name}
+                                </div>
+                                <div>
+                                  <strong>Email:</strong>{" "}
+                                  {klass.teacher.email || "—"}
+                                </div>
+
+                                <div>
+                                  <strong>Certification:</strong>{" "}
+                                  {klass.teacher.teacher?.certification || "—"}
+                                </div>
+                                <div>
+                                  <strong>Experience:</strong>{" "}
+                                  {klass.teacher.teacher?.yearsOfExperience ??
+                                    "—"}{" "}
+                                  years
+                                </div>
+                                <div>
+                                  <strong>Bio:</strong>{" "}
+                                  {klass.teacher.teacher?.bio || "—"}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         ) : (
                           "—"
                         )}
@@ -229,10 +260,33 @@ export default function ClassTable() {
                               </span>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-lg bg-slate-800">
-                              {klass.students?.length ? (
-                                <ul className="text-sm space-y-1">
+                              {klass.students && klass.students.length > 0 ? (
+                                <ul className="text-sm space-y-2">
                                   {klass.students.map((s) => (
-                                    <li key={s.id}>{s.name}</li>
+                                    <li key={s.id}>
+                                      <div>
+                                        <strong>Student ID:</strong> {s.id}
+                                      </div>
+                                      <div>
+                                        <strong>Student Name:</strong> {s.name}
+                                      </div>
+                                      <div>
+                                        <strong>Phone:</strong>{" "}
+                                        {s.student.parentPhone || "—"}
+                                      </div>
+                                      <div>
+                                        <strong>Guardian:</strong>{" "}
+                                        {s.student.guardianName || "—"}
+                                      </div>
+                                      <div>
+                                        <strong>Health Notes:</strong>{" "}
+                                        {s.student.healthNotes || "—"}
+                                      </div>
+                                      <div>
+                                        <strong>Repeating:</strong>{" "}
+                                        {s.student.isRepeating ? "Yes" : "No"}
+                                      </div>
+                                    </li>
                                   ))}
                                 </ul>
                               ) : (
