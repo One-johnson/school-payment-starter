@@ -40,7 +40,8 @@ export default function CreateClassForm() {
     if (isCreate || isEdit) fetchTeachers();
   }, [isCreate, isEdit, fetchTeachers]);
 
-  if (!isCreate && !isEdit) return null;
+  const isFormOpen = isCreate || isEdit;
+  if (!isFormOpen) return null;
 
   return (
     <Dialog open onOpenChange={close}>
@@ -58,7 +59,10 @@ export default function CreateClassForm() {
           }}
           validationSchema={classSchema}
           enableReinitialize
-          onSubmit={async (values, { setSubmitting, resetForm }) => {
+          onSubmit={async (
+            values: { name: string; teacherId: string },
+            { setSubmitting, resetForm }
+          ) => {
             try {
               if (isEdit && classData) {
                 await updateClass(classData.id, values);
@@ -92,6 +96,8 @@ export default function CreateClassForm() {
                   name="name"
                   value={values.name}
                   onChange={handleChange}
+                  autoFocus
+                  placeholder="Enter class name"
                 />
                 {touched.name && errors.name && (
                   <p className="text-sm text-red-500">{errors.name}</p>
@@ -112,12 +118,18 @@ export default function CreateClassForm() {
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a teacher" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {teachers.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
+                  <SelectContent className="bg-gray-950">
+                    {teachers.length === 0 ? (
+                      <SelectItem disabled value="All">
+                        Loading teachers...
                       </SelectItem>
-                    ))}
+                    ) : (
+                      teachers.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 {touched.teacherId && errors.teacherId && (
@@ -126,6 +138,9 @@ export default function CreateClassForm() {
               </div>
 
               <div className="flex items-center justify-center gap-4 pt-2">
+                <Button variant="ghost" onClick={close} type="button">
+                  Cancel
+                </Button>
                 <Button
                   type="reset"
                   variant="outline"

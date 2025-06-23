@@ -17,7 +17,7 @@ interface PaymentStore {
 
 export const usePaymentStore = create(
   persist<PaymentStore>(
-    (set) => ({
+    (set, get) => ({
       payments: [],
       selectedPayment: undefined,
       loading: false,
@@ -30,7 +30,7 @@ export const usePaymentStore = create(
           set({ payments: res.data });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -43,7 +43,7 @@ export const usePaymentStore = create(
           set({ selectedPayment: res.data });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -58,7 +58,7 @@ export const usePaymentStore = create(
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -75,7 +75,7 @@ export const usePaymentStore = create(
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -88,9 +88,12 @@ export const usePaymentStore = create(
           set((state) => ({
             payments: state.payments.filter((p) => p.id !== id),
           }));
+          if (get().selectedPayment?.id === id) {
+            set({ selectedPayment: undefined });
+          }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }

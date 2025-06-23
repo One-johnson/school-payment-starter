@@ -3,7 +3,8 @@
 import { useModalStore } from "@/app/store/useModalStore";
 import AdminHeader from "@/components/layout/AdminHeader";
 import { Button } from "@/components/ui/button";
-import StudentForm from "@/components/forms/StudentForm"; // Adjust path as needed
+import StudentForm from "@/components/forms/StudentForm";
+import StudentTable from "@/components/tables/StudentTable"; // ✅ Import the table
 
 export default function Students() {
   const { open } = useModalStore();
@@ -23,9 +24,10 @@ export default function Students() {
           </Button>
         </div>
 
-        {/* Other dashboard content like tables, stats, etc. */}
+        {/* ✅ Student table goes here */}
+        <StudentTable />
 
-        {/* Student creation/edit modal */}
+        {/* ✅ Student modal (create/edit) */}
         <StudentForm />
       </div>
     </div>

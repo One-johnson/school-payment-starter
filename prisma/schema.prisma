@@ -28,62 +28,76 @@ model User {
   role        Role
   createdAt   DateTime @default(now())
 
-  // Relations
+  // Role-specific relations
   student  Student?
   teacher  Teacher?
   payments Payment[]
 }
 
+model Class {
+  id         String   @id // custom ID like "CLS_xyz"
+  trackingId String   @unique
+  name       String   @unique
+  createdAt  DateTime @default(now())
+
+  students  Student[]
+  teacherId String?
+  teacher   Teacher?  @relation("ClassTeacher", fields: [teacherId], references: [userId])
+  Payment   Payment[]
+}
+
 model Student {
-  id           String  @id
-  user         User    @relation(fields: [id], references: [id])
+  userId String @id // same as User.id, no default
+  user   User   @relation(fields: [userId], references: [id])
+
   parentPhone  String?
   guardianName String?
   healthNotes  String?
   isRepeating  Boolean @default(false)
 
-  // 🔧 One-to-many relation (e.g. primary class)
-  classId String?
-  class   Class?  @relation("PrimaryClass", fields: [classId], references: [id])
-
-  // 🔧 Many-to-many enrollment
-  enrolledIn Class[] @relation("StudentClass")
+  classId String
+  class   Class     @relation(fields: [classId], references: [id])
+  Payment Payment[]
 }
 
 model Teacher {
-  id                String  @id // Matches User.id
-  user              User    @relation(fields: [id], references: [id])
+  userId String @id // same as User.id, no default
+  user   User   @relation(fields: [userId], references: [id])
+
   bio               String?
   certification     String?
   yearsOfExperience Int?
 
-  // Class Relations
   teaches Class[] @relation("ClassTeacher")
 }
 
-model Class {
-  id         String   @id @default(cuid())
-  trackingId String   @unique
-  name       String   @unique
-  createdAt  DateTime @default(now())
-
-  // 🔧 Match the one-to-many
-  studentsSingle Student[] @relation("PrimaryClass")
-
-  // 🔧 Match the many-to-many
-  students Student[] @relation("StudentClass")
-
-  teacherId String?
-  teacher   Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
-}
-
 model Payment {
-  id         String        @id @default(cuid())
+  id         String        @id
   trackingId String        @unique
-  userId     String
-  user       User          @relation(fields: [userId], references: [id])
+  reference  String        @unique
   amount     Float
   status     PaymentStatus @default(PENDING)
-  reference  String        @unique
   createdAt  DateTime      @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // NEW RELATION FIELDS
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [userId])
+  classId   String?
+  class     Class?   @relation(fields: [classId], references: [id])
+  termId    String?
+  term      Term?    @relation(fields: [termId], references: [id])
+}
+
+model Term {
+  id        String   @id // custom ID like "TERM_2024S1"
+  name      String   @unique // e.g. "2024 - First Semester"
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+
+  // Payments associated with this term
+  payments Payment[]
 }

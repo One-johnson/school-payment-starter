@@ -7,7 +7,6 @@ type TeacherPayload = {
   name: string;
   email: string;
   clerkUserId: string;
-  classId?: string;
   bio?: string;
   certification?: string;
   yearsOfExperience?: number;
@@ -40,7 +39,7 @@ export const useTeacherStore = create(
           set({ teachers: res.data });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -53,7 +52,7 @@ export const useTeacherStore = create(
           set({ selectedTeacher: res.data });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -68,7 +67,7 @@ export const useTeacherStore = create(
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -94,7 +93,7 @@ export const useTeacherStore = create(
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -109,7 +108,7 @@ export const useTeacherStore = create(
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }

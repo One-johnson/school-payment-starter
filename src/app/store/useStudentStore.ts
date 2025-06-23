@@ -1,13 +1,17 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Student, StudentEntity } from "@/app/types/entities";
+import { Student } from "@/app/types/entities";
 import api from "@/hooks/axios";
 
 type StudentPayload = {
   name: string;
   email: string;
   clerkUserId: string;
-  student: Omit<StudentEntity, "class">; // class is usually resolved via population
+  parentPhone?: string;
+  guardianName?: string;
+  healthNotes?: string;
+  isRepeating?: boolean;
+  classId: string; // now required
 };
 
 interface StudentStore {
@@ -24,7 +28,7 @@ interface StudentStore {
 
 export const useStudentStore = create(
   persist<StudentStore>(
-    (set) => ({
+    (set, get) => ({
       students: [],
       selectedStudent: undefined,
       loading: false,
@@ -37,7 +41,7 @@ export const useStudentStore = create(
           set({ students: res.data });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -50,7 +54,7 @@ export const useStudentStore = create(
           set({ selectedStudent: res.data });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -59,13 +63,11 @@ export const useStudentStore = create(
       createStudent: async (data) => {
         set({ loading: true, error: null });
         try {
-          const res = await api.post("/students", data);
-          set((state) => ({
-            students: [res.data, ...state.students],
-          }));
+          await api.post("/students", data);
+          await get().fetchStudents();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -91,7 +93,7 @@ export const useStudentStore = create(
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }
@@ -106,7 +108,7 @@ export const useStudentStore = create(
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.response?.data?.error || err.message });
         } finally {
           set({ loading: false });
         }

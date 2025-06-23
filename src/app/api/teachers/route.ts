@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/hooks/prisma";
 import { generateIds } from "@/app/utils/generateIds";
 
-// ─── GET: All or one teacher ─────────────────────────────
+// ─── GET: Get all or one teacher ─────────────────────────────
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
@@ -46,7 +46,12 @@ export async function POST(req: NextRequest) {
   const { name, email, clerkUserId, bio, certification, yearsOfExperience } =
     body;
 
-  const trackingId = generateIds(name);
+  if (!name || !email || !clerkUserId) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -56,8 +61,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const trackingId = generateIds("teacher");
+  const userId = trackingId; // Custom user ID (optional: or use cuid())
+
   const user = await prisma.user.create({
     data: {
+      id: userId,
       name,
       email,
       role: "TEACHER",
@@ -68,7 +77,7 @@ export async function POST(req: NextRequest) {
 
   const teacher = await prisma.teacher.create({
     data: {
-      id: user.id,
+      userId: user.id,
       bio,
       certification,
       yearsOfExperience,
@@ -83,13 +92,20 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   const { id, name, email, bio, certification, yearsOfExperience } = body;
 
+  if (!id || !name || !email) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
+
   const user = await prisma.user.update({
     where: { id },
     data: { name, email },
   });
 
   const teacher = await prisma.teacher.update({
-    where: { id },
+    where: { userId: id },
     data: {
       bio,
       certification,
@@ -104,7 +120,11 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
 
-  await prisma.teacher.delete({ where: { id } });
+  if (!id) {
+    return NextResponse.json({ error: "Missing teacher ID" }, { status: 400 });
+  }
+
+  await prisma.teacher.delete({ where: { userId: id } });
   await prisma.user.delete({ where: { id } });
 
   return NextResponse.json({ message: "Teacher deleted" });

@@ -1,4 +1,3 @@
-// route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/hooks/prisma";
 import { generateIds } from "@/app/utils/generateIds";
@@ -13,10 +12,7 @@ export async function GET(req: NextRequest) {
       where: { id },
       include: {
         student: {
-          include: {
-            class: true,
-            enrolledIn: true,
-          },
+          include: { class: true },
         },
         payments: true,
       },
@@ -33,10 +29,7 @@ export async function GET(req: NextRequest) {
     where: { role: "STUDENT" },
     include: {
       student: {
-        include: {
-          class: true,
-          enrolledIn: true,
-        },
+        include: { class: true },
       },
       payments: true,
     },
@@ -48,9 +41,28 @@ export async function GET(req: NextRequest) {
 // ─── POST: Create student ─────────────────────────────────────
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, email, classId, parentPhone, clerkUserId } = body;
+  const {
+    name,
+    email,
+    clerkUserId,
+    parentPhone,
+    guardianName,
+    healthNotes,
+    isRepeating,
+    classId,
+  } = body;
 
-  const trackingId = generateIds(name);
+  if (!name || !email || !clerkUserId || !classId) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
+
+  const classExists = await prisma.class.findUnique({ where: { id: classId } });
+  if (!classExists) {
+    return NextResponse.json({ error: "Invalid class ID" }, { status: 400 });
+  }
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -60,8 +72,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const user = await prisma.user.create({
+  const trackingId = generateIds("student");
+  const userId = trackingId; // use same ID as `user.id`
+
+  await prisma.user.create({
     data: {
+      id: userId,
       name,
       email,
       role: "STUDENT",
@@ -70,46 +86,90 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const student = await prisma.student.create({
+  await prisma.student.create({
     data: {
-      id: user.id, // Link to User
+      userId, // same as user.id
       parentPhone,
+      guardianName,
+      healthNotes,
+      isRepeating,
       classId,
     },
   });
 
-  return NextResponse.json({ ...user, student });
+  const fullStudent = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      student: {
+        include: { class: true },
+      },
+      payments: true,
+    },
+  });
+
+  return NextResponse.json(fullStudent);
 }
 
 // ─── PUT: Update student ──────────────────────────────────────
 export async function PUT(req: NextRequest) {
   const body = await req.json();
-  const { id, name, email, parentPhone, classId } = body;
+  const {
+    id,
+    name,
+    email,
+    parentPhone,
+    guardianName,
+    healthNotes,
+    isRepeating,
+    classId,
+  } = body;
 
-  const user = await prisma.user.update({
+  if (!id || !name || !email || !classId) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
+
+  const classExists = await prisma.class.findUnique({ where: { id: classId } });
+  if (!classExists) {
+    return NextResponse.json({ error: "Invalid class ID" }, { status: 400 });
+  }
+
+  await prisma.user.update({
     where: { id },
     data: { name, email },
   });
 
-  const student = await prisma.student.update({
-    where: { id },
+  await prisma.student.update({
+    where: { userId: id },
     data: {
       parentPhone,
+      guardianName,
+      healthNotes,
+      isRepeating,
       classId,
     },
   });
 
-  return NextResponse.json({ ...user, student });
+  const updatedStudent = await prisma.user.findUnique({
+    where: { id },
+    include: {
+      student: {
+        include: { class: true },
+      },
+      payments: true,
+    },
+  });
+
+  return NextResponse.json(updatedStudent);
 }
 
 // ─── DELETE: Delete student ───────────────────────────────────
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
 
-  // Delete Student profile first due to 1:1 relation
-  await prisma.student.delete({ where: { id } });
-
-  // Then delete User
+  await prisma.student.delete({ where: { userId: id } });
   await prisma.user.delete({ where: { id } });
 
   return NextResponse.json({ message: "Student deleted" });
