@@ -55,11 +55,11 @@ export default function StudentForm() {
           initialValues={{
             name: studentData?.name ?? "",
             email: studentData?.email ?? "",
-            parentPhone: studentData?.student?.parentPhone ?? "",
-            guardianName: studentData?.student?.guardianName ?? "",
-            healthNotes: studentData?.student?.healthNotes ?? "",
-            isRepeating: studentData?.student?.isRepeating ?? false,
-            classId: studentData?.student?.classId ?? "",
+            parentPhone: studentData?.parentPhone ?? "",
+            guardianName: studentData?.guardianName ?? "",
+            healthNotes: studentData?.healthNotes ?? "",
+            isRepeating: studentData?.isRepeating ?? false,
+            classId: studentData?.classId ?? "",
           }}
           validationSchema={studentSchema}
           enableReinitialize
@@ -81,7 +81,6 @@ export default function StudentForm() {
                 await createStudent({
                   name: values.name,
                   email: values.email,
-                  clerkUserId: "YOUR_CLERK_USER_ID",
                   parentPhone: values.parentPhone,
                   guardianName: values.guardianName,
                   healthNotes: values.healthNotes,

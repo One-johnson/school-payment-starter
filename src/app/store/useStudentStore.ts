@@ -6,7 +6,7 @@ import api from "@/hooks/axios";
 type StudentPayload = {
   name: string;
   email: string;
-  clerkUserId: string;
+
   parentPhone?: string;
   guardianName?: string;
   healthNotes?: string;
@@ -83,10 +83,6 @@ export const useStudentStore = create(
                 ? {
                     ...s,
                     ...res.data,
-                    student: {
-                      ...s.student,
-                      ...res.data.student,
-                    },
                   }
                 : s
             ),
