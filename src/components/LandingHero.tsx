@@ -14,11 +14,19 @@ import { Button } from "./ui/button";
 export default function LandingHero() {
   const { user } = useUser();
 
-  let dashboardPath = "/dashboard";
-  const role = user?.publicMetadata?.role;
-  if (role === "ADMIN") dashboardPath = "/pages/dashboards/admin-dashboard";
-  if (role === "TEACHER") dashboardPath = "/pages/dashboards/teacher-dashboard";
-  if (role === "STUDENT") dashboardPath = "/pages/dashboards/student-dashboard";
+  const role = user?.publicMetadata?.role as
+    | "ADMIN"
+    | "TEACHER"
+    | "STUDENT"
+    | undefined;
+  const roleToPath: Record<"ADMIN" | "TEACHER" | "STUDENT", string> = {
+    ADMIN: "/pages/dashboards/admin-dashboard",
+    TEACHER: "/pages/dashboards/teacher-dashboard",
+    STUDENT: "/pages/dashboards/student-dashboard",
+  };
+
+  const dashboardPath = role ? roleToPath[role] : "/dashboard";
+  
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-6 py-16 bg-white dark:bg-black">

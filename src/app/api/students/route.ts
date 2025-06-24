@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/hooks/prisma";
 import { generateIds } from "@/app/utils/generateIds";
+import { clerkClient } from "@clerk/nextjs/server";
 
 // ─── GET: Get all or one student ─────────────────────────────
 export async function GET(req: NextRequest) {
@@ -124,9 +125,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid class ID" }, { status: 400 });
   }
 
-  const emailExists = await prisma.user.findUnique({
-    where: { email },
-  });
+  const emailExists = await prisma.user.findUnique({ where: { email } });
   if (emailExists) {
     return NextResponse.json({ error: "User already exists" }, { status: 400 });
   }
@@ -134,72 +133,91 @@ export async function POST(req: NextRequest) {
   const trackingId = generateIds(name);
   const userId = trackingId;
 
-  await prisma.user.create({
-    data: {
-      id: userId,
-      name,
-      email,
-      role: "STUDENT",
-      clerkUserId: `placeholder_${userId}`,
-      trackingId,
-    },
-  });
-
-  await prisma.student.create({
-    data: {
-      userId,
-      parentPhone,
-      guardianName,
-      healthNotes,
-      isRepeating,
-      classId,
-    },
-  });
-
-  const created = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      student: {
-        include: {
-          class: { include: { teacher: { include: { user: true } } } },
-        },
+  // ─── Create Clerk User ───
+  try {
+    const client = await clerkClient();
+    const clerkUser = await client.users.createUser({
+      emailAddress: [email],
+      firstName: name,
+      publicMetadata: {
+        role: "STUDENT",
       },
-      payments: true,
-    },
-  });
+    });
 
-  const flat = created && {
-    id: created.id,
-    name: created.name,
-    email: created.email,
-    role: "STUDENT" as const,
-    trackingId: created.trackingId,
-    clerkUserId: created.clerkUserId,
-    createdAt: created.createdAt,
+    // ─── Create User in DB ───
+    await prisma.user.create({
+      data: {
+        id: userId,
+        name,
+        email,
+        role: "STUDENT",
+        clerkUserId: clerkUser.id,
+        trackingId,
+      },
+    });
 
-    parentPhone: created.student?.parentPhone,
-    guardianName: created.student?.guardianName,
-    healthNotes: created.student?.healthNotes,
-    isRepeating: created.student?.isRepeating ?? false,
-    classId: created.student?.classId,
-    class: created.student?.class
-      ? {
-          id: created.student.class.id,
-          name: created.student.class.name,
-          trackingId: created.student.class.trackingId,
-          teacher: created.student.class.teacher?.user
-            ? {
-                id: created.student.class.teacher.user.id,
-                name: created.student.class.teacher.user.name,
-              }
-            : undefined,
-        }
-      : undefined,
+    await prisma.student.create({
+      data: {
+        userId,
+        parentPhone,
+        guardianName,
+        healthNotes,
+        isRepeating,
+        classId,
+      },
+    });
 
-    payments: created.payments,
-  };
+    const created = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        student: {
+          include: {
+            class: { include: { teacher: { include: { user: true } } } },
+          },
+        },
+        payments: true,
+      },
+    });
 
-  return NextResponse.json(flat);
+    const flat = created && {
+      id: created.id,
+      name: created.name,
+      email: created.email,
+      role: "STUDENT" as const,
+      trackingId: created.trackingId,
+      clerkUserId: created.clerkUserId,
+      createdAt: created.createdAt,
+
+      parentPhone: created.student?.parentPhone,
+      guardianName: created.student?.guardianName,
+      healthNotes: created.student?.healthNotes,
+      isRepeating: created.student?.isRepeating ?? false,
+      classId: created.student?.classId,
+      class: created.student?.class
+        ? {
+            id: created.student.class.id,
+            name: created.student.class.name,
+            trackingId: created.student.class.trackingId,
+            teacher: created.student.class.teacher?.user
+              ? {
+                  id: created.student.class.teacher.user.id,
+                  name: created.student.class.teacher.user.name,
+                }
+              : undefined,
+          }
+        : undefined,
+
+      payments: created.payments,
+    };
+
+    return NextResponse.json(flat);
+  } catch (error) {
+    console.error("Failed to create Clerk user:", error);
+    return NextResponse.json(
+      { error: "Failed to create student in Clerk" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PUT: Update student ──────────────────────────────────────
