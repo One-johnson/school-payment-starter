@@ -24,6 +24,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import { ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
 import { useModalStore } from "@/app/store/useModalStore";
 import { useStudentStore } from "@/app/store/useStudentStore";
@@ -138,8 +144,8 @@ export default function StudentTable() {
                   </TableHead>
                   <TableHead>Student ID</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Class</TableHead>
                   <TableHead>Parent Phone</TableHead>
+                  <TableHead>Class</TableHead>
                   <TableHead>Guardian Name</TableHead>
                   <TableHead>Repeating</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -167,10 +173,32 @@ export default function StudentTable() {
                       <TableCell>{student.trackingId}</TableCell>
                       <TableCell>{student.email}</TableCell>
                       <TableCell>
-                        {student.student?.class?.name ?? "—"}
+                        {student.student?.parentPhone ?? "—"}
                       </TableCell>
                       <TableCell>
-                        {student.student?.parentPhone ?? "—"}
+                        {student.student?.class ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="underline cursor-pointer text-blue-600">
+                                  {student.student.class.name}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-gray-950 p-4">
+                                <div>
+                                  <strong>Class ID:</strong>
+                                  {student.student.class.trackingId}
+                                </div>
+                                <div>
+                                  <strong>Teacher:</strong>
+                                  {student.student.class.teacher?.name ?? "—"}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                       <TableCell>
                         {student.student?.guardianName ?? "—"}

@@ -14,38 +14,30 @@ export interface BaseUser {
 }
 
 // ─── STUDENT ───────────────────────────────────────────
-export interface StudentEntity {
+export interface Student extends BaseUser {
+  role: "STUDENT";
   parentPhone?: string;
   guardianName?: string;
   healthNotes?: string;
   isRepeating: boolean;
   classId: string;
   class?: ClassEntity;
-}
-
-export interface Student extends BaseUser {
-  role: "STUDENT";
-  student: StudentEntity;
   payments?: Payment[];
 }
 
 // ─── TEACHER ───────────────────────────────────────────
-export interface TeacherEntity {
+export interface Teacher extends BaseUser {
+  role: "TEACHER";
   bio?: string;
   certification?: string;
   yearsOfExperience?: number;
-  classId?: string; // ← add this
-  class?: ClassEntity;
-}
-
-export interface Teacher extends BaseUser {
-  role: "TEACHER";
-  teacher: TeacherEntity;
+  classId?: string;
+  class?: ClassEntity; // direct reference
 }
 
 // ─── CLASS ─────────────────────────────────────────────
 export interface ClassEntity {
-  id: string; // custom ID like CLS_XXXX
+  id: string; // e.g., CLS_XXXX
   name: string;
   trackingId: string;
   teacherId?: string;
@@ -56,21 +48,19 @@ export interface ClassEntity {
 
 // ─── TERM ──────────────────────────────────────────────
 export interface Term {
-  id: string; // custom ID like TERM_XXXX
+  id: string;
   name: string;
   startDate: string;
   endDate: string;
   createdAt: string;
+  updatedAt: string;
   academicYear: string;
   payments?: Payment[];
-  updatedAt: string;
-
-
 }
 
 // ─── PAYMENT ───────────────────────────────────────────
 export interface Payment {
-  id: string; // custom ID like PAY_XXXX
+  id: string;
   trackingId: string;
   reference: string;
   amount: number;

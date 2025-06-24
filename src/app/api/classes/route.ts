@@ -7,47 +7,82 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
+  const includeConfig = {
+    teacher: { include: { user: true } },
+    students: { include: { user: true } },
+  };
+
   if (id) {
     const klass = await prisma.class.findUnique({
       where: { id },
-      include: {
-        teacher: {
-          include: {
-            user: true, // optional, if you want teacher name, email, etc.
-          },
-        },
-        students: {
-          include: {
-            user: true,
-          },
-        },
-      },
+      include: includeConfig,
     });
 
     if (!klass) {
       return NextResponse.json({ error: "Class not found" }, { status: 404 });
     }
 
-    return NextResponse.json(klass);
+    const { teacher, students, ...rest } = klass;
+
+    const flatKlass = {
+      ...rest,
+      teacher: teacher
+        ? {
+            ...teacher.user,
+            role: "TEACHER" as const,
+            bio: teacher.bio,
+            certification: teacher.certification,
+            yearsOfExperience: teacher.yearsOfExperience,
+          }
+        : undefined,
+      students: students.map((s) => ({
+        name: s.user.name,
+        id: s.user.id,
+        email: s.user.email,
+        role: "STUDENT" as const,
+        parentPhone: s.parentPhone,
+        guardianName: s.guardianName,
+        healthNotes: s.healthNotes,
+        isRepeating: s.isRepeating,
+        classId: s.classId,
+      })),
+    };
+
+    return NextResponse.json(flatKlass);
   }
 
   const classes = await prisma.class.findMany({
-    include: {
-      teacher: {
-        include: {
-          user: true,
-        },
-      },
-      students: {
-        include: {
-          user: true,
-        },
-      },
-    },
+    include: includeConfig,
   });
 
-  return NextResponse.json(classes);
+  const flatClasses = classes.map(({ teacher, students, ...rest }) => ({
+    ...rest,
+    teacher: teacher
+      ? {
+          ...teacher.user,
+          role: "TEACHER" as const,
+          bio: teacher.bio,
+          certification: teacher.certification,
+          yearsOfExperience: teacher.yearsOfExperience,
+        }
+      : undefined,
+    students: students.map((s) => ({
+      name: s.user.name,
+      id: s.user.id,
+      email: s.user.email,
+      role: "STUDENT" as const,
+      parentPhone: s.parentPhone,
+      guardianName: s.guardianName,
+      healthNotes: s.healthNotes,
+      isRepeating: s.isRepeating,
+      classId: s.classId,
+    })),
+  }));
+
+  return NextResponse.json(flatClasses);
 }
+
+
 
 // ─── POST: Create new class ───────────────────────────────────
 export async function POST(req: NextRequest) {
