@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/hooks/prisma";
 import { generateIds } from "@/app/utils/generateIds";
+import { auth } from "@clerk/nextjs/server"; // secure Clerk user access
 
 // ─── GET: Get all or one student ─────────────────────────────
 export async function GET(req: NextRequest) {
@@ -12,7 +13,9 @@ export async function GET(req: NextRequest) {
       where: { id },
       include: {
         student: {
-          include: { class: true },
+          include: {
+            class: { include: { teacher: { include: { user: true } } } },
+          },
         },
         payments: true,
       },
@@ -29,7 +32,9 @@ export async function GET(req: NextRequest) {
     where: { role: "STUDENT" },
     include: {
       student: {
-        include: { class: true },
+        include: {
+          class: { include: { teacher: { include: { user: true } } } },
+        },
       },
       payments: true,
     },
@@ -40,11 +45,15 @@ export async function GET(req: NextRequest) {
 
 // ─── POST: Create student ─────────────────────────────────────
 export async function POST(req: NextRequest) {
+  const { userId: clerkUserId } = await auth();
+  if (!clerkUserId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json();
   const {
     name,
     email,
-    clerkUserId,
     parentPhone,
     guardianName,
     healthNotes,
@@ -52,7 +61,7 @@ export async function POST(req: NextRequest) {
     classId,
   } = body;
 
-  if (!name || !email || !clerkUserId || !classId) {
+  if (!name || !email || !classId) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 }
@@ -64,16 +73,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid class ID" }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json(
-      { error: "Email already exists" },
-      { status: 400 }
-    );
+  const alreadyExists = await prisma.user.findUnique({
+    where: { clerkUserId },
+  });
+  if (alreadyExists) {
+    return NextResponse.json({ error: "User already exists" }, { status: 400 });
   }
 
-  const trackingId = generateIds("student");
-  const userId = trackingId; // use same ID as `user.id`
+  const trackingId = generateIds(name);
+  const userId = trackingId;
 
   await prisma.user.create({
     data: {
@@ -88,7 +96,7 @@ export async function POST(req: NextRequest) {
 
   await prisma.student.create({
     data: {
-      userId, // same as user.id
+      userId,
       parentPhone,
       guardianName,
       healthNotes,
@@ -101,7 +109,9 @@ export async function POST(req: NextRequest) {
     where: { id: userId },
     include: {
       student: {
-        include: { class: true },
+        include: {
+          class: { include: { teacher: { include: { user: true } } } },
+        },
       },
       payments: true,
     },
@@ -156,7 +166,9 @@ export async function PUT(req: NextRequest) {
     where: { id },
     include: {
       student: {
-        include: { class: true },
+        include: {
+          class: { include: { teacher: { include: { user: true } } } },
+        },
       },
       payments: true,
     },

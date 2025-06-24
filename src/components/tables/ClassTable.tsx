@@ -32,7 +32,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
-import { ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  MoreVertical,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { useClassStore } from "@/app/store/useClassStore";
 import { useTeacherStore } from "@/app/store/useTeacherStore";
 import { useModalStore } from "@/app/store/useModalStore";
@@ -231,17 +237,15 @@ export default function ClassTable() {
 
                                 <div>
                                   <strong>Certification:</strong>{" "}
-                                  {klass.teacher.teacher?.certification || "—"}
+                                  {klass.teacher.certification || "—"}
                                 </div>
                                 <div>
                                   <strong>Experience:</strong>{" "}
-                                  {klass.teacher.teacher?.yearsOfExperience ??
-                                    "—"}{" "}
-                                  years
+                                  {klass.teacher.yearsOfExperience ?? "—"} years
                                 </div>
                                 <div>
                                   <strong>Bio:</strong>{" "}
-                                  {klass.teacher.teacher?.bio || "—"}
+                                  {klass.teacher.bio || "—"}
                                 </div>
                               </TooltipContent>
                             </Tooltip>
@@ -259,32 +263,26 @@ export default function ClassTable() {
                                 {klass.students?.length ?? 0}
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-lg bg-slate-800">
+                            <TooltipContent className="max-w-lg max-h-80  bg-gray-950 text-white p-4 rounded">
                               {klass.students && klass.students.length > 0 ? (
-                                <ul className="text-sm space-y-2">
-                                  {klass.students.map((s) => (
-                                    <li key={s.id}>
+                                <ul className="text-xs space-y-2">
+                                  {klass.students.map((student) => (
+                                    <li key={student.id} className="space-y-1">
                                       <div>
-                                        <strong>Student ID:</strong> {s.id}
+                                        <strong>Student ID: </strong>
+                                        {student.id}
                                       </div>
                                       <div>
-                                        <strong>Student Name:</strong> {s.name}
+                                        <strong>Student Name: </strong>
+                                        {student.name ?? "—"}
                                       </div>
                                       <div>
-                                        <strong>Phone:</strong>{" "}
-                                        {s.student.parentPhone || "—"}
+                                        <strong>Phone: </strong>
+                                        {student.parentPhone ?? "—"}
                                       </div>
                                       <div>
-                                        <strong>Guardian:</strong>{" "}
-                                        {s.student.guardianName || "—"}
-                                      </div>
-                                      <div>
-                                        <strong>Health Notes:</strong>{" "}
-                                        {s.student.healthNotes || "—"}
-                                      </div>
-                                      <div>
-                                        <strong>Repeating:</strong>{" "}
-                                        {s.student.isRepeating ? "Yes" : "No"}
+                                        <strong>Guardian: </strong>
+                                        {student.guardianName ?? "—"}
                                       </div>
                                     </li>
                                   ))}
@@ -305,21 +303,24 @@ export default function ClassTable() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="bg-gray-950"
+                            className="bg-gray-950 p-1 rounded-md space-y-1 border border-gray-700"
                           >
                             <DropdownMenuItem
                               onClick={() => handleEdit(klass.id)}
+                              className="hover:bg-green-900/20 text-green-600 cursor-pointer rounded-md px-2 py-1 flex items-center space-x-2"
                             >
-                              Edit
+                              <Pencil className="h-4 w-4" />
+                              <span>Edit</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
                                 setSelectedId(klass.id);
                                 setDeleteDialogOpen(true);
                               }}
-                              className="text-red-600"
+                              className="text-red-600 hover:bg-red-900/20 cursor-pointer rounded-md px-2 py-1 flex items-center space-x-2"
                             >
-                              Delete
+                              <Trash2 className="h-4 w-4" />
+                              <span>Delete</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
