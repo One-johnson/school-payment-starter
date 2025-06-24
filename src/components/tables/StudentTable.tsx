@@ -30,7 +30,7 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
+import { ChevronDown, ChevronUp, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useModalStore } from "@/app/store/useModalStore";
 import { useStudentStore } from "@/app/store/useStudentStore";
 import { useClassStore } from "@/app/store/useClassStore";
@@ -78,7 +78,7 @@ export default function StudentTable() {
           .toLowerCase()
           .includes(search.toLowerCase());
         const matchClass =
-          filterClass === "all" || student.student?.classId === filterClass;
+          filterClass === "all" || student.classId === filterClass;
         return matchSearch && matchClass;
       })
       .sort((a, b) => {
@@ -172,26 +172,24 @@ export default function StudentTable() {
                       <TableCell>{student.name}</TableCell>
                       <TableCell>{student.trackingId}</TableCell>
                       <TableCell>{student.email}</TableCell>
+                      <TableCell>{student.parentPhone ?? "—"}</TableCell>
                       <TableCell>
-                        {student.student?.parentPhone ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        {student.student?.class ? (
+                        {student.class ? (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span className="underline cursor-pointer text-blue-600">
-                                  {student.student.class.name}
+                                  {student.class.name}
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent className="bg-gray-950 p-4">
                                 <div>
-                                  <strong>Class ID:</strong>
-                                  {student.student.class.trackingId}
+                                  <strong>Class ID: </strong>
+                                  {student.class.trackingId}
                                 </div>
                                 <div>
-                                  <strong>Teacher:</strong>
-                                  {student.student.class.teacher?.name ?? "—"}
+                                  <strong>Teacher: </strong>
+                                  {student.class.teacher?.name ?? "—"}
                                 </div>
                               </TooltipContent>
                             </Tooltip>
@@ -200,11 +198,9 @@ export default function StudentTable() {
                           "—"
                         )}
                       </TableCell>
+                      <TableCell>{student.guardianName ?? "—"}</TableCell>
                       <TableCell>
-                        {student.student?.guardianName ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        {student.student?.isRepeating ? "Yes" : "No"}
+                        {student.isRepeating ? "Yes" : "No"}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -215,23 +211,26 @@ export default function StudentTable() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="bg-gray-950"
+                            className="bg-gray-950 p-1 rounded-md space-y-1 border border-gray-700"
                           >
                             <DropdownMenuItem
                               onClick={() =>
                                 open({ type: "editStudent", data: student })
                               }
+                              className="hover:bg-green-900/20 text-green-600 cursor-pointer rounded-md px-2 py-1 flex items-center space-x-2"
                             >
-                              Edit
+                              <Pencil className="h-4 w-4" />
+                              <span>Edit</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
                                 setSelectedId(student.id);
                                 setDeleteDialogOpen(true);
                               }}
-                              className="text-red-600"
+                              className="text-red-600 hover:bg-red-900/20 cursor-pointer rounded-md px-2 py-1 flex items-center space-x-2"
                             >
-                              Delete
+                              <Trash2 className="h-4 w-4" />
+                              <span>Delete</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
